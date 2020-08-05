@@ -1,14 +1,16 @@
 const grid = document.querySelector('.grid');
 const gameOverDiv = document.querySelector('.game-over');
 let flagsLeft = document.querySelector('.flags-left');
+let reset = document.querySelector('.reset-btn');
 
 function game() {
     let width = 10;
     let squares = [];
-    let bombAmount = 2;
+    let bombAmount = 20;
     let flags = 0;
     const size = width * width;
     let isGameOver = false;
+    let timerStarted = false;
 
     // Create board
     function createBoard() {
@@ -29,6 +31,9 @@ function game() {
 
             // Normal click
             square.addEventListener('click', e => {
+                if (!timerStarted) {
+                    timerStarted = true;
+                }
                 click(square);
             })
 
@@ -77,7 +82,7 @@ function game() {
                 square.classList.add('flag');
                 square.innerText = '🚩';
                 flags++;
-                checkForWin();
+                // checkForWin();
             } else {
                 square.classList.remove('flag');
                 square.innerText = '';
@@ -104,6 +109,7 @@ function game() {
                 square.classList.add('checked');
                 square.innerHTML = total;
                 square.style.fontWeight = 'bold';
+                checkForWin();
                 switch (total) {
                     case '1': square.style.color = 'blue';
                         break;
@@ -121,22 +127,17 @@ function game() {
                         break;
                     case '8': square.style.color = 'yellow';
                 }
-                return
+                return;
             }
             checkSquare(currentId);
         }
-        console.log('przed checkiem');
-        console.log(square.id);
         square.classList.add('checked');
-        checkForWin();
-        console.log('po checku');
     }
 
     // Check neighbouring squares for total if the clicked square is empty, don't stop till all possible totals are found
     function checkSquare(currentId) {
         const isLeftEdge = (currentId % width === 0);
         const isRightEdge = (currentId % width === width - 1);
-
         setTimeout(() => {
             // Left
             if (currentId > 0 && !isLeftEdge) {
@@ -186,9 +187,7 @@ function game() {
                 const newSquare = document.getElementById(newId);
                 click(newSquare);
             }
-            return;
         }, 10);
-        return;
     }
 
     // Game Over
@@ -196,6 +195,7 @@ function game() {
         square.style.background = 'red';
         gameOverDiv.innerText = 'BOOM! Game Over! 💣';
         gameOverDiv.style.color = 'red';
+        reset.innerText = '💀';
         console.log('BOOM! Game Over! 💣💣💣')
         isGameOver = true;
 
@@ -210,8 +210,7 @@ function game() {
     // Check for win
     function checkForWin() {
         // let matches = 0;
-        console.log(document.querySelectorAll('.checked').length);
-        if (document.querySelectorAll('.checked').length === (size - bombAmount)) {
+        if (document.querySelectorAll('.checked').length === (size - bombAmount) && !isGameOver) {
             isGameOver = true;
             gameOverDiv.innerText = 'You won! 🚩';
             gameOverDiv.style.color = 'green';
@@ -233,11 +232,12 @@ function game() {
 game();
 
 
-let reset = document.querySelector('.reset-btn');
+
 reset.addEventListener('click', e => {
     console.clear();
     gameOverDiv.innerText = '';
     grid.innerHTML = '';
+    reset.innerText = '😉';
     game();
     e.preventDefault();
 });
