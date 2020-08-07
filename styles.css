@@ -165,9 +165,9 @@ a {
     background-color:rgb(245, 245, 245);
 }
 
-.bomb {
+/* .bomb {
     background-color: rgb(255, 154, 117);
-}
+} */
 
 .valid, .bomb {
     display: flex;

@@ -44,7 +44,7 @@ function resetScores() {
 function game() {
     let width = 10;
     let squares = [];
-    let bombAmount = 3;
+    let bombAmount = 20;
     let flags = 0;
     const size = width * width;
     let isGameOver = false;
