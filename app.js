@@ -1,16 +1,82 @@
 const grid = document.querySelector('.grid');
 const gameOverDiv = document.querySelector('.game-over');
-let flagsLeft = document.querySelector('.flags-left');
-let reset = document.querySelector('.reset-btn');
+const flagsLeft = document.querySelector('.flags-left');
+const reset = document.querySelector('.reset-btn');
+const timer = document.querySelector('.timer-value');
+let inputContainer = document.querySelector('.nickname-input-container');
+let input = document.querySelector('#nickname-input');
+let submitBtn = document.querySelector('.submit-btn');
+let nickName;
+let previousScores = getItemsFromStorage();
+let scoreTable = document.querySelector('.score-table');
 
+function getItemsFromStorage() {
+    let items;
+    if (localStorage.getItem('items') === null) {
+        items = [];
+        document.querySelector('.score-table').style.display = 'none';
+    } else {
+        items = JSON.parse(localStorage.getItem('items'));
+    }
+    return items;
+}
+
+displayScores(previousScores);
+
+// Display previous scores
+function displayScores(previousScores) {
+    previousScores.forEach((item) => {
+        let score = document.createElement('li');
+        score.classList.add('score-entry');
+        score.innerHTML = `
+        <span class="player">${item.nickName}</span>: <span class="score">${item.winningTime}</span> s
+        `;
+        scoreTable.appendChild(score);
+    });
+}
+
+// Reset scores display
+function resetScores() {
+    scoreTable.innerHTML = '';
+}
+
+// Game function
 function game() {
     let width = 10;
     let squares = [];
-    let bombAmount = 20;
+    let bombAmount = 3;
     let flags = 0;
     const size = width * width;
     let isGameOver = false;
     let timerStarted = false;
+    let time = 0;
+    let cancelledTimer = false;
+    submitBtn = document.querySelector('.submit-btn');
+    inputContainer = document.querySelector('.nickname-input-container');
+    input = document.querySelector('#nickname-input');
+
+    // Nickname submit
+    submitBtn.addEventListener('click', e => {
+        nickName = input.value;
+        if (nickName.length > 2) {
+            inputContainer.style.fontWeight = 'bold';
+            inputContainer.style.fontSize = '30px';
+            inputContainer.innerHTML = `Current Player: ${nickName}`;
+        }
+
+        e.preventDefault();
+    })
+
+    // Timer
+    const timerFunction = function () {
+        if (cancelledTimer) {
+            return;
+        }
+        // console.log(time);
+        timer.innerText = `${time}`;
+        time++;
+        setTimeout(timerFunction, 1000);
+    };
 
     // Create board
     function createBoard() {
@@ -33,9 +99,14 @@ function game() {
             square.addEventListener('click', e => {
                 if (!timerStarted) {
                     timerStarted = true;
+                    if (timerStarted) {
+                        timerFunction();
+                        input.disabled = true;
+                        submitBtn.disabled = true;
+                    }
                 }
                 click(square);
-            })
+            });
 
             square.oncontextmenu = function (e) {
                 addFlag(square);
@@ -82,7 +153,6 @@ function game() {
                 square.classList.add('flag');
                 square.innerText = '🚩';
                 flags++;
-                // checkForWin();
             } else {
                 square.classList.remove('flag');
                 square.innerText = '';
@@ -187,16 +257,19 @@ function game() {
                 const newSquare = document.getElementById(newId);
                 click(newSquare);
             }
+            checkForWin();
         }, 10);
     }
 
     // Game Over
     function gameOver(square) {
+        input.disabled = true;
+        submitBtn.disabled = true;
+        cancelledTimer = true;
         square.style.background = 'red';
         gameOverDiv.innerText = 'BOOM! Game Over! 💣';
         gameOverDiv.style.color = 'red';
         reset.innerText = '💀';
-        console.log('BOOM! Game Over! 💣💣💣')
         isGameOver = true;
 
         // Show all bombs
@@ -209,35 +282,84 @@ function game() {
 
     // Check for win
     function checkForWin() {
-        // let matches = 0;
         if (document.querySelectorAll('.checked').length === (size - bombAmount) && !isGameOver) {
+            input.disabled = true;
+            submitBtn.disabled = true;
+            cancelledTimer = true;
             isGameOver = true;
+            if (nickName) {
+                let winningTime = time;
+                storeScore(nickName, winningTime);
+                resetScores();
+                displayScores(getItemsFromStorage());
+            }
             gameOverDiv.innerText = 'You won! 🚩';
             gameOverDiv.style.color = 'green';
         }
-        // for (let i = 0; i < squares.length; i++) {
-        //     if (squares[i].classList.contains('flag') && squares[i].classList.contains('bomb')) {
-        //         matches++;
-        //     }
-        //     if (matches === bombAmount) {
-        //         isGameOver = true;
-        //         gameOverDiv.innerText = 'You won! 🚩';
-        //         gameOverDiv.style.color = 'green';
-        //     }
-        // }
     }
+
+    // Storing scores in Local Storage
+    function storeScore(nickName, winningTime) {
+        let items;
+        // Check if any items in LS
+        if (localStorage.getItem('items') === null) {
+            items = [];
+            // Push new item
+            items.push({ nickName, winningTime });
+            // Set LS
+            localStorage.setItem('items', JSON.stringify(items));
+        } else {
+            // Get what is already in LS
+            items = JSON.parse(localStorage.getItem('items'));
+
+            // Sort the items array in ascending order depending on completion time
+            items.sort((a, b) => {
+                return a.winningTime - b.winningTime;
+            });
+
+
+            if (items.length < 5) {
+                // Add item if score array is shorter than 5
+                items.push({ nickName, winningTime });
+
+                // Check if the current score is better than the last score in LS
+            } else if (winningTime < items[4].winningTime) {
+                items.pop();
+                items.push({ nickName, winningTime });
+            };
+
+            // Sort the items array in ascending order depending on completion time
+            items.sort((a, b) => {
+                return a.winningTime - b.winningTime;
+            });
+            console.log(items);
+
+            // reset LS
+            localStorage.setItem('items', JSON.stringify(items));
+        }
+    }
+
+    // Reset Game
+    reset.addEventListener('click', e => {
+        input.value = '';
+        inputContainer.style.fontWeight = 'normal';
+        inputContainer.style.fontSize = '16px';
+        inputContainer.innerHTML =
+            `
+            <label for="nickname-input-label">Enter Your Nickname: </label>
+            <input maxlength=12 minlength=3 required type="text" id="nickname-input" placeholder="Between 3 and 12 signs">
+            <button type="submit" class="submit-btn">Submit</button>
+    `;
+        cancelledTimer = true;
+        timer.innerText = '0';
+        gameOverDiv.innerText = '';
+        grid.innerHTML = '';
+        reset.innerText = '😉';
+        game();
+        console.clear();
+        e.preventDefault();
+    });
 
 }
 
 game();
-
-
-
-reset.addEventListener('click', e => {
-    console.clear();
-    gameOverDiv.innerText = '';
-    grid.innerHTML = '';
-    reset.innerText = '😉';
-    game();
-    e.preventDefault();
-});

@@ -11,6 +11,24 @@
     --cells-in-row: 10;
   }
 
+  .info-container {
+      height: 140px;
+      width: 100%;
+  }
+
+  .nickname-input-container {
+      display: flex;
+      align-items: center;
+  }
+
+  #nickname-input {
+    cursor: auto;
+    font-size: 15px;
+    width: 200px;
+    line-height: 23px;
+    margin-left: 5px;
+  }
+
 .outer-container {
     display: grid;
     grid-template: auto/ 1fr 1fr 1fr 1fr;
@@ -22,15 +40,27 @@ h1 {
     font-size: 2.5rem;
 }
 
+.nickname-container {
+    line-height: 30px;
+    font-size: 20px;
+}
+
+.submit-btn {
+    padding: 0 10px 0;
+    font-size: 20px;
+    cursor: pointer;
+    margin-left: 25px;
+}
+
 .game-over {
     height: 100px;
     width: 100%;
-    padding-bottom: 20px;
+    padding-bottom: 10px;
     display: flex;
     justify-content: center;
     align-items: center;
     font-weight: bold;
-    font-size: 45px;
+    font-size: 35px;
 }
 
 h2 {
@@ -106,7 +136,8 @@ a {
 }
 
 .timer {
-    text-align: end;
+    display: flex;
+    justify-content: space-between;
 }
 
 .grid {

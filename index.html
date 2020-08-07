@@ -13,21 +13,26 @@
     <div class="outer-container">
         <div class="game-container">
             <h1>Minesweeper</h1>
-            <div class="game-over"></div>
+            <div class="info-container">
+                <div class="nickname-input-container">
+                    <label for="nickname-input-label">Enter Your Nickname: </label>
+                    <input maxlength=12 minlength=3 required type="text" id="nickname-input"
+                        placeholder="Between 3 and 12 signs">
+                    <button type="submit" class="submit-btn">Submit</button>
+                </div>
+                <div class="game-over"></div>
+            </div>
             <div class="game-interface">
                 <div class="flags-left"> <span>🚩</span></div>
                 <div class="reset"><a href="" class="reset-btn">😉</a></div>
-                <div class="timer"><span>Time elapsed: </span>20 s</div>
+                <div class="timer">Time elapsed: <span class="timer-value">0</span> s</div>
             </div>
             <div class="grid"></div>
         </div>
         <div class="score-container">
-            <h2>Best Scores</h2>
+            <h2>Top 5 Best Scores</h2>
             <div class="score-table-container">
                 <ol class="score-table">
-                    <li><span class="username">Adam: </span><span class="clear-time">200 s</span></li>
-                    <li><span class="username">Adam: </span><span class="clear-time">200 s</span></li>
-                    <li><span class="username">Adam: </span><span class="clear-time">200 s</span></li>
                 </ol>
             </div>
         </div>
