@@ -37,7 +37,7 @@
 }
 
 h1 {
-    margin-bottom: 70px;
+    margin-bottom: 30px;
     font-size: 2.5rem;
 }
 
@@ -115,6 +115,7 @@ h2 {
     padding: 10px;
     border: 0.2px solid black;
     box-shadow: 6px 6px 10px 2px rgba(0,0,0,0.7);
+    align-items: center;
 }
 
 .game-interface div {
@@ -137,7 +138,14 @@ a {
 
 .timer {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
+}
+
+.timer-value {
+    display: inline-block;
+    margin: 0 5px 0 0px;
+    min-width: 35px;
+    text-align: end;
 }
 
 .grid {
@@ -175,7 +183,7 @@ a {
     align-items: center;
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 1050px) {
     :root {
         --cell-width: 40px;
       }
