@@ -223,6 +223,10 @@ a {
         font-size: 12px;
     }
 
+    .game-over {
+        font-size: 16px;
+    }
+
     .game-container {
         grid-column: 1 / 5;
     }
