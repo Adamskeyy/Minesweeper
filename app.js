@@ -6,7 +6,6 @@ const timer = document.querySelector('.timer-value');
 let inputContainer = document.querySelector('.nickname-input-container');
 let input = document.querySelector('#nickname-input');
 let submitBtn = document.querySelector('.submit-btn');
-let nickName;
 let previousScores = getItemsFromStorage();
 let scoreTable = document.querySelector('.score-table');
 
@@ -14,7 +13,6 @@ function getItemsFromStorage() {
     let items;
     if (localStorage.getItem('items') === null) {
         items = [];
-        document.querySelector('.score-table').style.display = 'none';
     } else {
         items = JSON.parse(localStorage.getItem('items'));
     }
@@ -25,14 +23,20 @@ displayScores(previousScores);
 
 // Display previous scores
 function displayScores(previousScores) {
-    previousScores.forEach((item) => {
-        let score = document.createElement('li');
-        score.classList.add('score-entry');
-        score.innerHTML = `
-        <span class="player">${item.nickName}</span>: <span class="score">${item.winningTime}</span> s
-        `;
-        scoreTable.appendChild(score);
-    });
+    if (previousScores.length < 1) {
+        scoreTable.style.display = 'none';
+    } else {
+        scoreTable.style.display = 'block';
+        previousScores.forEach((item) => {
+            let score = document.createElement('li');
+            score.classList.add('score-entry');
+            score.innerHTML = `
+            <span class="player">${item.nickName}</span>: <span class="score">${item.winningTime}</span> s
+            `;
+            scoreTable.appendChild(score);
+        });
+    }
+
 }
 
 // Reset scores display
@@ -40,28 +44,37 @@ function resetScores() {
     scoreTable.innerHTML = '';
 }
 
+class GameVars {
+    constructor(nickName, bombAmount, flags, isGameOver, timerStarted, time, cancelledTimer, timeInstance) {
+        this.bombAmount = bombAmount;
+        this.flags = flags;
+        this.isGameOver = isGameOver;
+        this.timerStarted = timerStarted;
+        this.time = time;
+        this.cancelledTimer = cancelledTimer;
+        this.timeInstance = timeInstance;
+        this.nickName = nickName;
+    }
+}
+
+const gameInstance = new GameVars(null, 20, 0, false, false, 0, false, null);
+
 // Game function
 function game() {
     let width = 10;
     let squares = [];
-    let bombAmount = 20;
-    let flags = 0;
     const size = width * width;
-    let isGameOver = false;
-    let timerStarted = false;
-    let time = 0;
-    let cancelledTimer = false;
     submitBtn = document.querySelector('.submit-btn');
     inputContainer = document.querySelector('.nickname-input-container');
     input = document.querySelector('#nickname-input');
 
     // Nickname submit
     submitBtn.addEventListener('click', e => {
-        nickName = input.value;
-        if (nickName.length > 2) {
+        gameInstance.nickName = input.value;
+        if (gameInstance.nickName.length > 2) {
             inputContainer.style.fontWeight = 'bold';
             inputContainer.style.fontSize = '30px';
-            inputContainer.innerHTML = `Current Player: ${nickName}`;
+            inputContainer.innerHTML = `Current Player: ${gameInstance.nickName}`;
         }
 
         e.preventDefault();
@@ -69,23 +82,23 @@ function game() {
 
     // Timer
     const timerFunction = function () {
-        if (cancelledTimer) {
+        if (gameInstance.cancelledTimer) {
             return;
         }
-        // console.log(time);
-        timer.innerText = `${time}`;
-        time++;
-        setTimeout(timerFunction, 1000);
+        console.log(gameInstance.time);
+        timer.innerText = `${gameInstance.time}`;
+        gameInstance.time++;
+        gameInstance.timeInstance = setTimeout(timerFunction, 1000);
     };
 
     // Create board
     function createBoard() {
         // Get shuffled game array with random bombs
-        const bombsArray = Array(bombAmount).fill('bomb');
-        const emptyArray = Array(size - bombAmount).fill('valid');
+        const bombsArray = Array(gameInstance.bombAmount).fill('bomb');
+        const emptyArray = Array(size - gameInstance.bombAmount).fill('valid');
         const gameArray = emptyArray.concat(bombsArray);
         const shuffledArray = gameArray.sort(() => Math.random() - 0.5);
-        flagsLeft.firstChild.data = `${bombAmount}`;
+        flagsLeft.firstChild.data = `${gameInstance.bombAmount}`;
 
         for (let i = 0; i < size; i++) {
             const square = document.createElement('div');
@@ -97,9 +110,9 @@ function game() {
 
             // Normal click
             square.addEventListener('click', e => {
-                if (!timerStarted) {
-                    timerStarted = true;
-                    if (timerStarted) {
+                if (!gameInstance.timerStarted) {
+                    gameInstance.timerStarted = true;
+                    if (gameInstance.timerStarted) {
                         timerFunction();
                         input.disabled = true;
                         submitBtn.disabled = true;
@@ -138,7 +151,6 @@ function game() {
                 // Bottom Left
                 if ((i < size - width) && !isLeftEdge && squares[i - 1 + width].classList.contains('bomb')) total++;
                 squares[i].setAttribute('data', total);
-                // console.log(squares[i]);
             }
         }
     }
@@ -147,29 +159,29 @@ function game() {
 
     // Add or remove flag with right click
     function addFlag(square) {
-        if (isGameOver) return;
-        if (!square.classList.contains('checked') && flags < bombAmount) {
+        if (gameInstance.isGameOver) return;
+        if (!square.classList.contains('checked') && gameInstance.flags < gameInstance.bombAmount) {
             if (!square.classList.contains('flag')) {
                 square.classList.add('flag');
                 square.innerText = '🚩';
-                flags++;
+                gameInstance.flags++;
             } else {
                 square.classList.remove('flag');
                 square.innerText = '';
-                flags--;
+                gameInstance.flags--;
             }
         } else if (square.classList.contains('flag')) {
             square.classList.remove('flag');
             square.innerText = '';
-            flags--;
+            gameInstance.flags--;
         }
-        flagsLeft.firstChild.data = `${bombAmount - flags}`;
+        flagsLeft.firstChild.data = `${gameInstance.bombAmount - gameInstance.flags}`;
     }
 
     // Click on square actions
     function click(square) {
         let currentId = square.id;
-        if (isGameOver) return;
+        if (gameInstance.isGameOver) return;
         if (square.classList.contains('checked') || square.classList.contains('flag')) return;
         if (square.classList.contains('bomb')) {
             gameOver(square);
@@ -181,21 +193,29 @@ function game() {
                 square.style.fontWeight = 'bold';
                 checkForWin();
                 switch (total) {
-                    case '1': square.style.color = 'blue';
+                    case '1':
+                        square.style.color = 'blue';
                         break;
-                    case '2': square.style.color = 'green';
+                    case '2':
+                        square.style.color = 'green';
                         break;
-                    case '3': square.style.color = 'red';
+                    case '3':
+                        square.style.color = 'red';
                         break;
-                    case '4': square.style.color = 'navy';
+                    case '4':
+                        square.style.color = 'navy';
                         break;
-                    case '5': square.style.color = 'darkred';
+                    case '5':
+                        square.style.color = 'darkred';
                         break;
-                    case '6': square.style.color = 'orange';
+                    case '6':
+                        square.style.color = 'orange';
                         break;
-                    case '7': square.style.color = 'pink';
+                    case '7':
+                        square.style.color = 'pink';
                         break;
-                    case '8': square.style.color = 'yellow';
+                    case '8':
+                        square.style.color = 'yellow';
                 }
                 return;
             }
@@ -265,12 +285,12 @@ function game() {
     function gameOver(square) {
         input.disabled = true;
         submitBtn.disabled = true;
-        cancelledTimer = true;
+        gameInstance.cancelledTimer = true;
         square.style.background = 'red';
         gameOverDiv.innerText = 'BOOM! Game Over! 💣';
         gameOverDiv.style.color = 'red';
         reset.innerText = '💀';
-        isGameOver = true;
+        gameInstance.isGameOver = true;
 
         // Show all bombs
         squares.forEach(square => {
@@ -282,14 +302,14 @@ function game() {
 
     // Check for win
     function checkForWin() {
-        if (document.querySelectorAll('.checked').length === (size - bombAmount) && !isGameOver) {
+        if (document.querySelectorAll('.checked').length === (size - gameInstance.bombAmount) && !gameInstance.isGameOver) {
             input.disabled = true;
             submitBtn.disabled = true;
-            cancelledTimer = true;
-            isGameOver = true;
-            if (nickName) {
-                let winningTime = time;
-                storeScore(nickName, winningTime);
+            gameInstance.cancelledTimer = true;
+            gameInstance.isGameOver = true;
+            if (gameInstance.nickName) {
+                let winningTime = gameInstance.time;
+                storeScore(gameInstance.nickName, winningTime);
                 resetScores();
                 displayScores(getItemsFromStorage());
             }
@@ -305,7 +325,10 @@ function game() {
         if (localStorage.getItem('items') === null) {
             items = [];
             // Push new item
-            items.push({ nickName, winningTime });
+            items.push({
+                nickName,
+                winningTime
+            });
             // Set LS
             localStorage.setItem('items', JSON.stringify(items));
         } else {
@@ -320,12 +343,18 @@ function game() {
 
             if (items.length < 5) {
                 // Add item if score array is shorter than 5
-                items.push({ nickName, winningTime });
+                items.push({
+                    nickName,
+                    winningTime
+                });
 
                 // Check if the current score is better than the last score in LS
             } else if (winningTime < items[4].winningTime) {
                 items.pop();
-                items.push({ nickName, winningTime });
+                items.push({
+                    nickName,
+                    winningTime
+                });
             };
 
             // Sort the items array in ascending order depending on completion time
@@ -338,28 +367,34 @@ function game() {
             localStorage.setItem('items', JSON.stringify(items));
         }
     }
+}
 
-    // Reset Game
-    reset.addEventListener('click', e => {
-        input.value = '';
-        inputContainer.style.fontWeight = 'normal';
-        inputContainer.style.fontSize = '16px';
-        inputContainer.innerHTML =
-            `
+// Reset Game
+reset.addEventListener('click', e => {
+    input.value = '';
+    inputContainer.style.fontWeight = 'normal';
+    inputContainer.style.fontSize = '16px';
+    inputContainer.innerHTML =
+        `
             <label for="nickname-input-label">Enter Your Nickname: </label>
             <input maxlength=12 minlength=3 required type="text" id="nickname-input" placeholder="Between 3 and 12 signs">
             <button type="submit" class="submit-btn">Submit</button>
     `;
-        cancelledTimer = true;
-        timer.innerText = '0';
-        gameOverDiv.innerText = '';
-        grid.innerHTML = '';
-        reset.innerText = '😉';
-        game();
-        console.clear();
-        e.preventDefault();
-    });
-
-}
+    clearTimeout(gameInstance.timeInstance);
+    gameInstance.nickName = null;
+    gameInstance.bombAmount = 20;
+    gameInstance.flags = 0;
+    gameInstance.isGameOver = false;
+    gameInstance.timerStarted = false;
+    gameInstance.time = 0;
+    gameInstance.cancelledTimer = false;
+    timer.innerText = '0';
+    gameOverDiv.innerText = '';
+    grid.innerHTML = '';
+    reset.innerText = '😉';
+    game();
+    console.clear();
+    e.preventDefault();
+});
 
 game();
