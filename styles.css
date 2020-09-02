@@ -33,6 +33,7 @@
     display: grid;
     grid-template: auto/ 1fr 1fr 1fr 1fr;
     background: linear-gradient(90deg, rgba(61,61,61,1) 0%, rgba(255,255,255,1) 100%);
+    min-height: 100vh;
 }
 
 h1 {
@@ -71,7 +72,7 @@ h2 {
 .game-container {
     grid-column: 2 / 4;
     width: calc(var(--cell-width) * var(--cells-in-row));
-    margin: 0 auto;
+    margin: 20px auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -175,6 +176,53 @@ a {
 }
 
 @media (max-width: 1000px) {
+    :root {
+        --cell-width: 40px;
+      }
+
+    .info-container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .game-container {
+        grid-column: 1 / 5;
+    }
+    .score-container {
+        grid-column: 1 / 5;
+        min-height: auto;
+        padding-top: 0;
+        margin: 0 auto 50px;
+    }
+}
+
+@media (max-width: 700px) {
+    :root {
+        --cell-width: 30px;
+      }
+
+    .nickname-input-container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    #nickname-input {
+        margin: 10px 0;
+    }
+
+    .submit-btn {
+        margin: 10px 0 5px;
+    }
+
+    .info-container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .game-interface {
+        font-size: 12px;
+    }
+
     .game-container {
         grid-column: 1 / 5;
     }
